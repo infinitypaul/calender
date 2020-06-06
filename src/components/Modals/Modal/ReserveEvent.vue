@@ -40,13 +40,14 @@
                 saveReservation: 'reservation/saveReservation',
             }),
             submit(){
-                let reduceDate = moment(Date.parse(this.picker.toUTCString())).format('YYYY-M-D');
-                console.log(reduceDate);
+                //const reduceDate = moment(Date.parse(this.picker.toUTCString())).format('YYYY-M-D');
+                const processedDate = `${moment(this.picker).get('year')}-${moment(this.picker).get('month')}-${moment(this.picker).get('date')}`;
                let form = {
                     title : this.title,
-                    date: moment(Date.parse(this.picker.toUTCString())).format('YYYY-M-D')
+                    date: processedDate
                 }
                 this.saveReservation(form)
+                this.$modal.hide('reserve')
             }
         }
     }

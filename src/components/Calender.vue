@@ -1,6 +1,5 @@
 <template>
-  <article id="calendar"
-           >
+  <article id="calendar">
     <header>
       <div class="current-date">
         <div class="current-day">
@@ -24,8 +23,9 @@
     <section>
       <div class="event">
         <div class="item">
-          f
-
+          <div class="current-day">
+            {{ weekdayNames[currentDay] }}
+          </div>
         </div>
         <div class="add" @click="setEvent">Add Event</div>
       </div>
@@ -40,22 +40,25 @@
         </div>
         <div class="day"
              :class="{ active: n === currentDate.date}"
-             @click="currentDate.date = n"
+             @click="seeEvent(n)"
              v-for="(n, index) in currentMonthDays"
              :key="'day'+index">
-          {{ n }}  <div class="dot" v-for="(me, index) in putThem(n)" @click="popSomething(me, n)" :key="index">.</div>
+          {{ n }}  <div class="dot-holder">
+          <span class="dot" v-for="(me, index) in insertEvent(n)" :key="index">.</span>
+        </div>
         </div>
         <div class="day-hidden" v-for="(n, index) in (43 - (currentMonthDays + firstMonthDay))" :key="'next'+index">
           {{ n }}
         </div>
       </div>
     </section>
+    <ViewEvent :currentDate="currentDate" />
   </article>
 </template>
 
 <script>
   import { mapActions, mapGetters } from 'vuex'
-
+  import ViewEvent from "../components/Modals/Modal/ViewEvent";
   export default {
     data: function() {
       return {
@@ -65,19 +68,15 @@
           'January','February','March','April','May','June','July',
           'August','September','October','November','December'
         ],
-        events : [
-          {'reservationId':'2', 'date':'4/5/2020'},
-          {'reservationId':'3', 'date':'10/5/2020'},
-          {'reservationId':'3', 'date':'10/5/2020'},
-          {'reservationId':'3', 'date':'10/6/2020'}
-        ],
         currentDate: {
           date: 0,
           month: 0,
           year: 0
-        },
-        reserve : []
+        }
       }
+    },
+    components:{
+      ViewEvent
     },
     computed: {
       prevMonthDays() {
@@ -94,24 +93,22 @@
         return new Date(this.currentDate.year, this.currentDate.month, this.currentDate.date).getDay();
       },
       currentMonthDays() {
-       return  new Date(this.currentDate.year, this.currentDate.month +1, 0).getDate();
+        return  new Date(this.currentDate.year, this.currentDate.month +1, 0).getDate();
 
       },
-        ...mapGetters({
-          bookings : 'reservation/bookings'
-        })
+      ...mapGetters({
+        bookings : 'reservation/bookings'
+      })
 
     },
     methods: {
-      putThem(n){
-        //console.log(this.bookings);
-        const EventDate = `${this.currentDate.year}-${this.currentDate.month}-${n}`;
-        //console.log(EventDate);
-        return this.bookings.map((eve, index) => eve.date === EventDate ? index : '').filter(String);
+      seeEvent(n){
+        this.currentDate.date = n
+        this.$modal.show('viewEvent', { name : `${this.weekdayNames[this.currentDay]} ${this.currentDate.date} - ${this.month[this.currentDate.month]} - ${this.currentDate.year}`})
       },
-
-      popSomething(index, n){
-        console.log(index, n)
+      insertEvent(n){
+        const EventDate = `${this.currentDate.year}-${this.currentDate.month}-${n}`;
+        return this.bookings.map((eve, index) => eve.date === EventDate ? index : '').filter(String);
       },
       ...mapActions({
         getReservations: 'reservation/getReservations',
@@ -159,7 +156,6 @@
         }
       },
       setEvent(){
-        //this.currentDate.date = 10;
         this.$modal.show('reserve', { name : "Book A Date"})
       }
     },
@@ -184,7 +180,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 30px;
+      height: 40px;
       color: #fff;
       border-radius: 5px;
     }
@@ -200,7 +196,7 @@
   #calendar {
     width: 460px;
     height: 730px;
-    background-color: #efefef;
+    background-color: #304357;
     font-family: 'Anton';
     border-radius: 15px;
     overflow: hidden;
@@ -208,6 +204,7 @@
     user-select: none;
     .dot {
       position: relative;
+      height: max-content;
     }
     .add {
       cursor: pointer;
@@ -249,6 +246,7 @@
         div {
           display: flex;
           justify-content: center;
+          padding: 5px;
         }
       }
       .current-day {
@@ -277,12 +275,24 @@
       .active {
         background-color: #fff;
         color: #2A4C50;
+        .dot-holder{
+          color: #222;
+        }
       }
       .day {
+        display: flex;
+        flex-direction: column;
+        align-content: space-around;
         cursor: pointer;
+        .dot-holder{
+          height: 5px;
+        }
         &:hover {
           background-color: #fff;
           color: #2A4C50;
+          .dot-holder{
+            color: #222;
+          }
         }
         &:nth-child(7n) {
           color: #D43541;

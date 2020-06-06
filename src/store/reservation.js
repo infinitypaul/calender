@@ -9,7 +9,9 @@ export default ({
     mutations: {
         SET_RESERVATION (state, reservation) {
             state.reservations =  [...state.reservations, ...reservation];
-            //state.reservations = reservation;
+        },
+        REMOVE_RESERVATION (state, id){
+            state.reservations = state.reservations.filter((reservation) => reservation.id !== id);
         }
     },
 
@@ -30,16 +32,18 @@ export default ({
             }).reduce((arr, el) => {
                 return arr.concat(el)
             }, []);
-            console.log(res)
             commit('SET_RESERVATION', res);
         },
 
         async saveReservation ({commit}, credentials) {
-            //console.log(credentials)
             let response = await axios.post('/reservations.json', credentials)
             let res = [{...credentials, ...{'id' : response.data.name}}]
-            console.log(res)
             commit('SET_RESERVATION', res);
+        },
+
+        async removeReservation({commit}, id){
+            await axios.delete(`/reservations/${id}.json`)
+            commit('REMOVE_RESERVATION', id)
 
         }
     }
